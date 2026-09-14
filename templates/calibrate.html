@@ -2,7 +2,7 @@
 {% block content %}
 <div class="card">
   <h1>Step 1 - Camera Calibration</h1>
-  <p>Upload the chessboard photos you took with your phone. 15-25 images from different angles/distances give the most reliable result.</p>
+  <p>Upload the chessboard photos you took with your phone.</p>
   <form method="POST" enctype="multipart/form-data">
     <label>Chessboard photos</label>
     <input type="file" name="images" multiple accept="image/*" required>
@@ -32,7 +32,7 @@
     <div class="stat-box"><div class="label">Mean reprojection error</div><div class="value">{{ "%.4f"|format(result.mean_error) }} px</div></div>
   </div>
   <p style="margin-top:16px;"><strong>Distortion coefficients</strong> (k1, k2, p1, p2, k3): <code>{{ result.dist_coeffs }}</code></p>
-  <p class="muted">Saved to static/calib/camera_calib.npz - this is what Step 2 will use automatically.</p>
+  <p class="muted">Saved to static/calib/camera_calib.npz.</p>
 </div>
 {% endif %}
 {% endblock %}

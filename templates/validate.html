@@ -2,7 +2,7 @@
 {% block content %}
 <div class="card">
   <h1>Step 3 - Validation (20-object experiment)</h1>
-  <p>Upload a CSV with columns <code>object_id, actual_mm, measured_mm, distance_mm</code> covering your 20 measured objects. A template is in the repo as <code>sample_measurements.csv</code>.</p>
+  <p>Upload a CSV with columns <code>object_id, actual_mm, measured_mm, distance_mm</code>.</p>
   <form method="POST" enctype="multipart/form-data">
     <label>Measurements CSV</label>
     <input type="file" name="csv_file" accept=".csv" required>
