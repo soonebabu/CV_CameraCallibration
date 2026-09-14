@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Computer Vision - Homework Index</title>
+  <style>
+    :root {
+      --accent: #c9762f;
+      --bg: #12181b;
+      --card: #1b2327;
+      --border: #313d43;
+      --text: #e7eceb;
+      --muted: #93a1a8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+    }
+    h1 { font-size: 28px; margin-bottom: 4px; color: #fff; }
+    p.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 40px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+    .tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 26px 22px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color .15s, transform .15s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .tile.active:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .tile.disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .tile .num {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .tile h2 { margin: 0; font-size: 19px; color: #fff; }
+    .tile .desc { font-size: 13px; color: var(--muted); }
+    .tile .status { font-size: 12px; margin-top: 6px; color: var(--muted); }
+    .tile.active .status { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>Computer Vision - Homework Index</h1>
+  <p class="subtitle">Select an assignment to open its app.</p>
+  <div class="grid">
+    <a class="tile active" href="{{ url_for('homework1_overview') }}">
+      <span class="num">HOMEWORK 1</span>
+      <h2>Camera Calibration</h2>
+      <span class="desc">Intrinsic calibration, perspective measurement, and validation against ground truth.</span>
+      <span class="status">Open &rarr;</span>
+    </a>
+    <a class="tile disabled">
+      <span class="num">HOMEWORK 2</span>
+      <h2>Coming soon</h2>
+      <span class="desc">Not yet available.</span>
+      <span class="status">Locked</span>
+    </a>
+    <a class="tile disabled">
+      <span class="num">HOMEWORK 3</span>
+      <h2>Coming soon</h2>
+      <span class="desc">Not yet available.</span>
+      <span class="status">Locked</span>
+    </a>
+    <a class="tile disabled">
+      <span class="num">HOMEWORK 4</span>
+      <h2>Coming soon</h2>
+      <span class="desc">Not yet available.</span>
+      <span class="status">Locked</span>
+    </a>
+  </div>
+</body>
+</html>

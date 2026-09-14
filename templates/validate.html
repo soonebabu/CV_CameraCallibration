@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Step 3 - Validation (20-object experiment)</h1>
+  <p>Upload a CSV with columns <code>object_id, actual_mm, measured_mm, distance_mm</code> covering your 20 measured objects. A template is in the repo as <code>sample_measurements.csv</code>.</p>
+  <form method="POST" enctype="multipart/form-data">
+    <label>Measurements CSV</label>
+    <input type="file" name="csv_file" accept=".csv" required>
+    <button type="submit">Compute error statistics</button>
+  </form>
+</div>
+
+{% if stats %}
+<div class="card">
+  <h2>Error statistics</h2>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="label">Objects</div><div class="value">{{ stats.n_objects }}</div></div>
+    <div class="stat-box"><div class="label">Mean abs. error</div><div class="value">{{ "%.2f"|format(stats.mean_abs_error_mm) }} mm</div></div>
+    <div class="stat-box"><div class="label">RMSE</div><div class="value">{{ "%.2f"|format(stats.rmse_mm) }} mm</div></div>
+    <div class="stat-box"><div class="label">Std dev of error</div><div class="value">{{ "%.2f"|format(stats.std_error_mm) }} mm</div></div>
+    <div class="stat-box"><div class="label">Mean % error</div><div class="value">{{ "%.2f"|format(stats.mean_pct_error) }}%</div></div>
+    <div class="stat-box"><div class="label">Max abs. error</div><div class="value">{{ "%.2f"|format(stats.max_abs_error_mm) }} mm</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Per-object detail</h2>
+  {{ table | safe }}
+</div>
+
+<div class="card">
+  <h2>Plots</h2>
+  <img src="{{ plot1 }}" style="max-width:100%; margin-bottom:20px;">
+  <img src="{{ plot2 }}" style="max-width:100%;">
+</div>
+{% endif %}
+{% endblock %}

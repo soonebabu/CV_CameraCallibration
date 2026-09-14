@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Step 2 - Real-World Measurement</h1>
+
+  {% if not calib %}
+    <p class="muted">No calibration found yet - go run <a href="{{ url_for('calibrate_view') }}">Step 1</a> first.</p>
+  {% elif not image_url %}
+    <p>Upload a photo of the object you want to measure.</p>
+    <form method="POST" enctype="multipart/form-data">
+      <label>Object photo</label>
+      <input type="file" name="object_image" accept="image/*" required>
+      <button type="submit">Upload</button>
+    </form>
+  {% else %}
+    <p>Click the two endpoints of the edge you want to measure directly on the photo, enter the camera-to-object distance, then compute.</p>
+    <canvas id="clickCanvas"></canvas>
+    <p class="muted" id="clickStatus">Click point 1...</p>
+
+    <form method="POST" id="measureForm">
+      <input type="hidden" name="image_name" value="{{ image_name }}">
+      <input type="hidden" name="x1" id="x1">
+      <input type="hidden" name="y1" id="y1">
+      <input type="hidden" name="x2" id="x2">
+      <input type="hidden" name="y2" id="y2">
+
+      <label>Camera-to-object distance (mm)</label>
+      <input type="number" step="0.1" name="distance_mm" required>
+
+      <button type="submit" id="submitBtn" disabled>Compute real-world length</button>
+    </form>
+
+    <script>
+      const canvas = document.getElementById('clickCanvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.src = "{{ image_url }}";
+      let points = [];
+
+      img.onload = () => {
+        // scale down big phone photos to fit the page while keeping the
+        // original-resolution pixel coordinates for the math
+        const maxWidth = 800;
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.dataset.scale = scale;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+
+      canvas.addEventListener('click', (e) => {
+        if (points.length >= 2) return;
+        const rect = canvas.getBoundingClientRect();
+        const scale = parseFloat(canvas.dataset.scale);
+        const xDisplay = e.clientX - rect.left;
+        const yDisplay = e.clientY - rect.top;
+        const xOriginal = xDisplay / scale;
+        const yOriginal = yDisplay / scale;
+        points.push([xOriginal, yOriginal]);
+
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(xDisplay, yDisplay, 5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        if (points.length === 1) {
+          document.getElementById('clickStatus').innerText = 'Click point 2...';
+        } else if (points.length === 2) {
+          ctx.strokeStyle = 'lime';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          const p1d = [points[0][0] * scale, points[0][1] * scale];
+          ctx.moveTo(p1d[0], p1d[1]);
+          ctx.lineTo(xDisplay, yDisplay);
+          ctx.stroke();
+
+          document.getElementById('x1').value = points[0][0];
+          document.getElementById('y1').value = points[0][1];
+          document.getElementById('x2').value = points[1][0];
+          document.getElementById('y2').value = points[1][1];
+          document.getElementById('clickStatus').innerText = 'Both points set - enter distance and compute.';
+          document.getElementById('submitBtn').disabled = false;
+        }
+      });
+    </script>
+  {% endif %}
+</div>
+
+{% if result %}
+<div class="card">
+  <h2>Result</h2>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="label">Pixel distance</div><div class="value">{{ "%.1f"|format(result.pixel_dist) }} px</div></div>
+    <div class="stat-box"><div class="label">Distance to object</div><div class="value">{{ result.distance_mm|round(1) }} mm</div></div>
+    <div class="stat-box"><div class="label">Real length (mm)</div><div class="value">{{ "%.2f"|format(result.real_mm) }}</div></div>
+    <div class="stat-box"><div class="label">Real length (cm)</div><div class="value">{{ "%.2f"|format(result.real_cm) }}</div></div>
+  </div>
+  <p class="muted">Computed as L = (pixel_distance x Z) / f, using the calibrated focal length in pixels and the distance you entered. See the report for the full derivation.</p>
+</div>
+{% endif %}
+{% endblock %}

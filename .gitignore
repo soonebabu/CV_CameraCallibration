@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+venv/
+camera_calib.npz
+static/calib/*.npz
+static/calib_uploads/*
+!static/calib_uploads/.gitkeep
+static/object_uploads/*
+!static/object_uploads/.gitkeep
+static/results/*
+!static/results/.gitkeep
+results/*
+!results/.gitkeep
+.DS_Store
