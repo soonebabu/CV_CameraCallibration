@@ -1,0 +1,65 @@
+{% extends "hw3/_layout.html" %}
+{% block head %}
+<script>
+  window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Theory: the convolution theorem</h1>
+  <p>Claim: convolving an image with a filter kernel in the spatial domain gives the same result as multiplying
+    their Fourier transforms and taking the inverse Fourier transform.</p>
+  <div class="theory-block">
+    $$ f(x,y) * h(x,y) \;\; \Longleftrightarrow \;\; F(u,v)\cdot H(u,v) $$
+  </div>
+</div>
+
+<div class="card">
+  <h2>Continuous derivation</h2>
+  <p>2D convolution is defined as</p>
+  <div class="theory-block">
+    $$ (f*h)(x,y) = \int_{-\infty}^{\infty}\int_{-\infty}^{\infty} f(\tau_1,\tau_2)\, h(x-\tau_1,\, y-\tau_2)\, d\tau_1\, d\tau_2 $$
+  </div>
+  <p>Take the 2D Fourier transform of both sides (transforming over $x,y$):</p>
+  <div class="theory-block">
+    $$ \mathcal{F}\{f*h\}(u,v) = \int\!\!\int \left[ \int\!\!\int f(\tau_1,\tau_2)\, h(x-\tau_1, y-\tau_2)\, d\tau_1 d\tau_2 \right] e^{-j2\pi(ux+vy)}\, dx\, dy $$
+  </div>
+  <p>Swap the order of integration and substitute $x' = x-\tau_1,\; y' = y-\tau_2$:</p>
+  <div class="theory-block">
+    $$ = \int\!\!\int f(\tau_1,\tau_2)\, e^{-j2\pi(u\tau_1+v\tau_2)} d\tau_1 d\tau_2 \;\cdot\; \int\!\!\int h(x',y')\, e^{-j2\pi(ux'+vy')} dx'\, dy' $$
+  </div>
+  <p>The two integrals are exactly the definitions of $F(u,v)$ and $H(u,v)$, so</p>
+  <div class="theory-block">
+    $$ \mathcal{F}\{f*h\}(u,v) = F(u,v)\, H(u,v) $$
+  </div>
+  <p class="muted">The separation into a product works because the complex exponential factors as
+    $e^{-j2\pi(ux+vy)} = e^{-j2\pi(u\tau_1+v\tau_2)}\, e^{-j2\pi(ux'+vy')}$ once the substitution removes the
+    coupling between $\tau$ and $x$ introduced by the shift in $h$.</p>
+</div>
+
+<div class="card">
+  <h2>Discrete case: why the images had to be zero-padded</h2>
+  <p>The DFT version of the theorem is the same statement, but for the discrete circular convolution:</p>
+  <div class="theory-block">
+    $$ (f \circledast h)[m,n] \;\; \Longleftrightarrow \;\; F[k,l] \cdot H[k,l] $$
+  </div>
+  <p>A direct FFT multiply on an $M \times N$ image therefore gives <em>circular</em> convolution - the kernel wraps
+    around the image border, which is not what <code>cv2.filter2D</code> computes (it zero-pads at the border, i.e.
+    linear convolution). The standard fix, used in <code>blur.py</code>, is to zero-pad the image by the kernel's
+    radius before the FFT: that gives the wraparound artifacts room to land entirely inside the padding, so the
+    center region of the circular result equals the true linear convolution. This is the classic
+    "linear convolution via padded circular convolution" trick, and it's what makes the spatial and frequency
+    results match to floating-point precision on the blur page rather than just approximately.</p>
+</div>
+
+<div class="card">
+  <h2>Why blurring is a low-pass filter</h2>
+  <p>A blur kernel (box or Gaussian) is a smoothing/averaging operator - it removes fast intensity transitions,
+    which is exactly what high spatial frequencies encode. In the frequency domain this is literal: $H(u,v)$ for a
+    Gaussian kernel is itself a Gaussian, peaked at the origin (DC) and decaying with radius $\rho = \sqrt{u^2+v^2}$.
+    Multiplying $F(u,v)$ by $H(u,v)$ attenuates high-frequency content proportionally to $H$'s falloff, leaving the
+    low frequencies (coarse shading) largely intact - visible directly in the blurred image's shrunken magnitude
+    spectrum on the <a href="{{ url_for('hw3.blur_view') }}">blur page</a>.</p>
+</div>
+{% endblock %}

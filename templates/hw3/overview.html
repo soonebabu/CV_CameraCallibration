@@ -1,0 +1,16 @@
+{% extends "hw3/_layout.html" %}
+{% block content %}
+<div class="card">
+  <h1>Image Blurring: Spatial Filter vs. Frequency Domain</h1>
+  <p>CSc 8830 Computer Vision, Homework 3. This homework has two parts:</p>
+  <ol>
+    <li><strong>Implementation</strong> - blur an image two independent ways: (a) directly convolving it with a
+      box/Gaussian kernel in the spatial domain, and (b) multiplying its Fourier transform by the kernel's Fourier
+      transform and inverting. Go to <a href="{{ url_for('hw3.blur_view') }}">Blur: space vs. frequency</a>.</li>
+    <li><strong>Theory</strong> - the convolution theorem says these two operations produce the same result:
+      <code>f * h &harr; F &middot; H</code>. See <a href="{{ url_for('hw3.theory') }}">Theory</a> for the derivation,
+      and the blur page for the numeric proof on a real image (max/mean pixel difference between the two results,
+      which comes out at machine-precision noise).</li>
+  </ol>
+</div>
+{% endblock %}

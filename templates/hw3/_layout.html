@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block sidebar_brand %}Homework 3 &middot; Blurring{% endblock %}
+{% block sidebar_links %}
+  <a class="nav-link {{ 'current' if active_page == 'overview' }}" href="{{ url_for('hw3.overview') }}">Overview</a>
+  <a class="nav-link {{ 'current' if active_page == 'blur' }}" href="{{ url_for('hw3.blur_view') }}">Blur: space vs. frequency</a>
+  <a class="nav-link {{ 'current' if active_page == 'theory' }}" href="{{ url_for('hw3.theory') }}">Theory (convolution theorem)</a>
+{% endblock %}

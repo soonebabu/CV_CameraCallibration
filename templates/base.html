@@ -2,127 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{% block title %}Camera Calibration & Measurement{% endblock %}</title>
-  <style>
-    :root {
-      --accent: #c9762f;
-      --accent-dark: #a85f22;
-      --bg: #12181b;
-      --panel: #1b2327;
-      --card: #202a2f;
-      --border: #313d43;
-      --text: #e7eceb;
-      --muted: #93a1a8;
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      margin: 0;
-      color: var(--text);
-      display: flex;
-      min-height: 100vh;
-    }
-    .sidebar {
-      width: 220px;
-      flex-shrink: 0;
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-      padding: 22px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .sidebar .brand {
-      color: #fff;
-      font-weight: 700;
-      font-size: 15px;
-      padding: 0 20px 16px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 10px;
-    }
-    .sidebar .home-link {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 12px;
-      padding: 0 20px 14px;
-      display: block;
-    }
-    .sidebar .home-link:hover { color: var(--accent); }
-    .sidebar a.nav-link {
-      color: #c7d0d4;
-      text-decoration: none;
-      font-size: 14px;
-      padding: 10px 20px;
-      border-left: 3px solid transparent;
-    }
-    .sidebar a.nav-link:hover {
-      background: rgba(201, 118, 47, 0.12);
-      color: #fff;
-    }
-    main {
-      flex: 1;
-      padding: 34px 40px 60px;
-      max-width: 900px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px 28px;
-      margin-bottom: 22px;
-    }
-    h1 { font-size: 25px; margin-top: 0; color: #fff; }
-    h2 { font-size: 18px; color: #fff; }
-    label { display: block; margin: 12px 0 4px; font-weight: 600; font-size: 14px; color: var(--muted); }
-    input[type=number], input[type=text], input[type=file] {
-      padding: 8px 10px;
-      background: #161d21;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      width: 100%;
-      max-width: 320px;
-      color: var(--text);
-    }
-    button {
-      margin-top: 18px;
-      background: var(--accent);
-      color: #1b1b1b;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    button:hover { background: var(--accent-dark); color: #fff; }
-    table.result-table { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 14px; }
-    table.result-table th, table.result-table td {
-      border: 1px solid var(--border);
-      padding: 6px 10px;
-      text-align: right;
-      color: var(--text);
-    }
-    table.result-table th:first-child, table.result-table td:first-child { text-align: left; }
-    .flash { background: #3a2420; border: 1px solid #86432f; color: #f2b8a3; padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; }
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 14px; }
-    .stat-box { background: #161d21; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
-    .stat-box .label { font-size: 12px; color: var(--muted); }
-    .stat-box .value { font-size: 20px; font-weight: 700; color: var(--accent); }
-    code { background: #161d21; padding: 2px 6px; border-radius: 4px; color: #e0c9a6; }
-    .muted { color: var(--muted); font-size: 13px; }
-    #clickCanvas { border: 1px solid var(--border); max-width: 100%; cursor: crosshair; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Computer Vision - Homeworks{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
 </head>
 <body>
   <div class="sidebar">
-    <div class="brand">Homework 1 · Calibration</div>
+    <div class="brand">{% block sidebar_brand %}Computer Vision{% endblock %}</div>
     <a class="home-link" href="{{ url_for('landing') }}">&larr; All homeworks</a>
-    <a class="nav-link" href="{{ url_for('homework1_overview') }}">Overview</a>
-    <a class="nav-link" href="{{ url_for('calibrate_view') }}">1. Calibration</a>
-    <a class="nav-link" href="{{ url_for('measure_view') }}">2. Measurement</a>
-    <a class="nav-link" href="{{ url_for('validate_view') }}">3. Validation</a>
+    {% block sidebar_links %}{% endblock %}
   </div>
   <main>
     {% with messages = get_flashed_messages() %}

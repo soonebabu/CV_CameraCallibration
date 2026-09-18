@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block sidebar_brand %}Homework 4 &middot; Segmentation{% endblock %}
+{% block sidebar_links %}
+  <a class="nav-link {{ 'current' if active_page == 'overview' }}" href="{{ url_for('hw4.overview') }}">Overview</a>
+  <a class="nav-link {{ 'current' if active_page == 'rgb' }}" href="{{ url_for('hw4.rgb_view') }}">RGB boundary</a>
+  <a class="nav-link {{ 'current' if active_page == 'thermal' }}" href="{{ url_for('hw4.thermal_view') }}">Thermal boundary</a>
+  <a class="nav-link {{ 'current' if active_page == 'theory' }}" href="{{ url_for('hw4.theory') }}">Theory (Fourier edges)</a>
+{% endblock %}

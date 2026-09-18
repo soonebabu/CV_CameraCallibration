@@ -1,0 +1,150 @@
+{% extends "hw4/_layout.html" %}
+{% block content %}
+<div class="card">
+  <h1>RGB photo: human boundary via GrabCut</h1>
+
+  {% if not image_url %}
+    <p>Upload a color photo with a person in it.</p>
+    <form method="POST" enctype="multipart/form-data">
+      <label>Photo</label>
+      <input type="file" name="image" accept="image/*" required>
+      <button type="submit">Upload</button>
+    </form>
+  {% elif not result %}
+    <p>Drag a rectangle loosely around the person (GrabCut only needs a rough box), or just use the automatic
+      whole-image box. Then optionally attach a SAM2 mask to compare against.</p>
+    <canvas id="rectCanvas"></canvas>
+    <p class="muted" id="rectStatus">Drag a box around the person...</p>
+
+    <form method="POST" enctype="multipart/form-data" id="rgbForm">
+      <input type="hidden" name="run_id" value="{{ run_id }}">
+      <input type="hidden" name="rx" id="rx">
+      <input type="hidden" name="ry" id="ry">
+      <input type="hidden" name="rw" id="rw">
+      <input type="hidden" name="rh" id="rh">
+
+      <label><input type="checkbox" id="useAuto" name="use_auto"> Use automatic box (whole image, inset 5%)</label>
+
+      <label>SAM2 mask to compare against (optional)</label>
+      <input type="file" name="sam2_mask" accept="image/*">
+
+      <button type="submit" id="submitBtn" disabled>Run GrabCut segmentation</button>
+    </form>
+
+    <script>
+      const canvas = document.getElementById('rectCanvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.src = "{{ image_url }}";
+      const nativeW = {{ img_w }}, nativeH = {{ img_h }};
+      let dragging = false, start = null, rectPx = null;
+
+      img.onload = () => {
+        const maxWidth = 800;
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.dataset.scale = scale;
+        draw();
+      };
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        if (rectPx) {
+          ctx.strokeStyle = 'lime';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(rectPx.x, rectPx.y, rectPx.w, rectPx.h);
+        }
+      }
+
+      function toCanvasXY(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        return [x, y];
+      }
+
+      canvas.addEventListener('mousedown', (e) => {
+        dragging = true;
+        const [x, y] = toCanvasXY(e);
+        start = { x, y };
+      });
+      canvas.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const [x, y] = toCanvasXY(e);
+        rectPx = { x: Math.min(start.x, x), y: Math.min(start.y, y), w: Math.abs(x - start.x), h: Math.abs(y - start.y) };
+        draw();
+      });
+      window.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        if (rectPx && rectPx.w > 5 && rectPx.h > 5) {
+          const scale = parseFloat(canvas.dataset.scale);
+          document.getElementById('rx').value = rectPx.x / scale;
+          document.getElementById('ry').value = rectPx.y / scale;
+          document.getElementById('rw').value = rectPx.w / scale;
+          document.getElementById('rh').value = rectPx.h / scale;
+          document.getElementById('rectStatus').innerText = 'Box set - run segmentation, or drag again to redo.';
+          document.getElementById('submitBtn').disabled = false;
+        }
+      });
+
+      const useAuto = document.getElementById('useAuto');
+      useAuto.addEventListener('change', () => {
+        document.getElementById('submitBtn').disabled = !useAuto.checked && !rectPx;
+      });
+    </script>
+  {% endif %}
+</div>
+
+{% if result %}
+<div class="card">
+  <h2>Result</h2>
+  <div class="img-grid">
+    <figure>
+      <img src="{{ result.urls.seed_rect }}">
+      <figcaption>GrabCut seed rectangle</figcaption>
+    </figure>
+    <figure>
+      <img src="{{ result.urls.mask }}">
+      <figcaption>Segmentation mask</figcaption>
+    </figure>
+    <figure>
+      <img src="{{ result.urls.boundary }}">
+      <figcaption>Extracted boundary (largest contour)</figcaption>
+    </figure>
+  </div>
+</div>
+
+{% if result.sam2 %}
+<div class="card">
+  <h2>Comparison vs. SAM2</h2>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="label">IoU</div><div class="value">{{ "%.3f"|format(result.sam2.iou) }}</div></div>
+    <div class="stat-box"><div class="label">Dice</div><div class="value">{{ "%.3f"|format(result.sam2.dice) }}</div></div>
+  </div>
+  <div class="img-grid">
+    <figure>
+      <img src="{{ result.sam2.sam2_mask_url }}">
+      <figcaption>SAM2 mask (uploaded)</figcaption>
+    </figure>
+    <figure>
+      <img src="{{ result.sam2.overlay_url }}">
+      <figcaption>Agreement: white = both, green = ours only, red = SAM2 only</figcaption>
+    </figure>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <p class="muted">No SAM2 mask was attached, so no IoU/Dice comparison was run. Generate one at
+    <a href="https://sam2.metademolab.com/">sam2.metademolab.com</a> (upload this same photo, click the person,
+    export the mask) and try again with it attached.</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <a href="{{ url_for('hw4.rgb_view') }}"><button class="secondary" type="button">Segment another photo</button></a>
+</div>
+{% endif %}
+{% endblock %}

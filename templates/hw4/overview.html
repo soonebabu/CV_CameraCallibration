@@ -1,0 +1,23 @@
+{% extends "hw4/_layout.html" %}
+{% block content %}
+<div class="card">
+  <h1>Human Boundary Segmentation: Classical CV vs. SAM2</h1>
+  <p>CSc 8830 Computer Vision, Homework 4. Three parts, no ML/DL in our own implementation:</p>
+  <ol>
+    <li><strong>RGB boundary</strong> - <a href="{{ url_for('hw4.rgb_view') }}">segment a person in a regular color photo</a>
+      using OpenCV's GrabCut (iterative graph-cut / GMM energy minimization on a single image - no trained
+      model or dataset), seeded with a rectangle.</li>
+    <li><strong>Thermal boundary</strong> - <a href="{{ url_for('hw4.thermal_view') }}">segment a person in a thermal
+      (infrared) frame</a> using Otsu global thresholding plus morphology - a person is almost always the hottest
+      (brightest) blob in the frame, so intensity thresholding alone separates them from the background.</li>
+    <li><strong>SAM2 comparison</strong> - both pages let you upload a mask you generated separately with
+      <a href="https://ai.meta.com/research/sam2/">Meta's SAM2</a> (e.g. from the
+      <a href="https://sam2.metademolab.com/">SAM2 web demo</a>: upload the same image, click the person, export the
+      mask) and compute IoU / Dice against our classical segmentation, plus a visual agreement overlay. SAM2 itself
+      is a deep model, so it's used only as an external reference to score against, not as part of our
+      implementation.</li>
+  </ol>
+  <p><a href="{{ url_for('hw4.theory') }}">Theory</a> covers how edge detection and region segmentation can be
+    derived in the frequency domain.</p>
+</div>
+{% endblock %}

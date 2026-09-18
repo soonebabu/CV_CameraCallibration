@@ -1,0 +1,94 @@
+{% extends "hw4/_layout.html" %}
+{% block head %}
+<script>
+  window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Theory: edge detection and segmentation in the frequency domain</h1>
+  <p>Edges are, by definition, places where intensity changes quickly over a short spatial distance - i.e. they
+    are dominated by high spatial frequencies. Regions are the opposite: areas of slowly-varying intensity, i.e.
+    low spatial frequencies. That single observation is what lets both edge detection and region segmentation be
+    derived as frequency-domain filtering operations.</p>
+</div>
+
+<div class="card">
+  <h2>1. Differentiation theorem &rarr; gradient edge detectors are high-pass filters</h2>
+  <p>The Fourier transform of a partial derivative is multiplication by frequency:</p>
+  <div class="theory-block">
+    $$ \mathcal{F}\left\{ \frac{\partial f}{\partial x} \right\}(u,v) = j2\pi u \, F(u,v), \qquad
+       \mathcal{F}\left\{ \frac{\partial f}{\partial y} \right\}(u,v) = j2\pi v \, F(u,v) $$
+  </div>
+  <p>This is proved directly from the transform's definition via integration by parts, using $f \to 0$ at
+    infinity to drop the boundary term:</p>
+  <div class="theory-block">
+    $$ \mathcal{F}\left\{\frac{\partial f}{\partial x}\right\} = \int\!\!\int \frac{\partial f}{\partial x} e^{-j2\pi(ux+vy)}\,dx\,dy
+       = \Big[f\,e^{-j2\pi(ux+vy)}\Big]_{x=-\infty}^{\infty} + j2\pi u \int\!\!\int f\, e^{-j2\pi(ux+vy)}\,dx\,dy = j2\pi u\, F(u,v) $$
+  </div>
+  <p>So a spatial derivative operator (Sobel, Prewitt) corresponds in the frequency domain to multiplying by
+    $j2\pi u$ (or $j2\pi v$) - a filter whose gain grows linearly with frequency, i.e. a high-pass filter. That's
+    why gradient operators respond strongly at edges (high frequency) and are near-zero in flat regions (low
+    frequency, near $u=v=0$).</p>
+</div>
+
+<div class="card">
+  <h2>2. Laplacian &rarr; an isotropic (radial) high-pass filter</h2>
+  <p>Applying the derivative theorem twice, once per axis, and summing:</p>
+  <div class="theory-block">
+    $$ \mathcal{F}\{\nabla^2 f\}(u,v) = \mathcal{F}\left\{\frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}\right\}
+       = (j2\pi u)^2 F + (j2\pi v)^2 F = -4\pi^2(u^2+v^2)\, F(u,v) $$
+  </div>
+  <p>Writing $\rho = \sqrt{u^2+v^2}$ for radial frequency, the Laplacian's frequency response is
+    $H(u,v) = -4\pi^2 \rho^2$ - a high-pass filter that depends only on distance from the origin (isotropic,
+    unlike the directional $j2\pi u$ response above). This is exactly why Laplacian-based edge detection
+    (zero-crossings of $\nabla^2 f$) is equivalent to applying a radial high-pass filter in the frequency domain
+    and finding where the filtered signal changes sign.</p>
+</div>
+
+<div class="card">
+  <h2>3. General frequency-domain edge enhancement</h2>
+  <p>Any edge detector of this family can be written as filtering in the frequency domain and inverting:</p>
+  <div class="theory-block">
+    $$ g(x,y) = \mathcal{F}^{-1}\{\, H_{hp}(u,v)\, F(u,v) \,\} $$
+  </div>
+  <p>with $H_{hp}$ an ideal, Butterworth, or Gaussian high-pass filter (the smooth Butterworth/Gaussian variants
+    avoid the ringing that an ideal brick-wall cutoff introduces via the Gibbs phenomenon). By the convolution
+    theorem (see <a href="{{ url_for('hw3.theory') }}">Homework 3 theory</a>), this is identical to convolving
+    $f$ with $h_{hp} = \mathcal{F}^{-1}\{H_{hp}\}$ in the spatial domain - which is precisely what a Sobel or
+    Laplacian kernel is: a small, spatially-compact approximation to an ideal high-pass filter.</p>
+</div>
+
+<div class="card">
+  <h2>4. Region segmentation as low-pass / band-limited filtering</h2>
+  <p>Segmentation asks the opposite question: which pixels belong to the same slowly-varying region? Three
+    frequency-domain views used in practice:</p>
+  <ul>
+    <li><strong>Low-pass smoothing before thresholding.</strong> $g = \mathcal{F}^{-1}\{H_{lp}(u,v) F(u,v)\}$
+      suppresses high-frequency noise/texture while preserving the coarse region structure, making a global
+      threshold (e.g. Otsu) more reliable. This is exactly the Gaussian blur pre-step used before Otsu
+      thresholding in the thermal segmentation on this page - a literal application of Homework 3's low-pass
+      filter, used here to stabilize a segmentation threshold rather than for aesthetics.</li>
+    <li><strong>Homomorphic filtering.</strong> Writing $f(x,y) = i(x,y)\, r(x,y)$ (illumination times
+      reflectance) and taking logs turns the product into a sum, $\ln f = \ln i + \ln r$, which is now linear and
+      can be Fourier-filtered: illumination varies slowly (low frequency), reflectance/texture varies quickly
+      (high frequency). A high-pass filter in this log-Fourier domain suppresses uneven illumination while
+      keeping object detail, then $\exp(\cdot)$ inverts the log - improving threshold-based segmentation under
+      non-uniform lighting.</li>
+    <li><strong>Band-pass / local spectral texture features.</strong> Computing the local power spectrum in
+      sliding windows (or with Gabor filters, which are localized band-pass filters in both space and frequency)
+      characterizes texture per region; pixels/windows with similar local spectra are grouped as the same region.
+      This generalizes simple intensity-threshold segmentation to texture-based segmentation.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Tying it back to the two implementations on this page</h2>
+  <p>Both classical segmenters on this site are, in this framework, spatial-domain shortcuts for frequency-domain
+    ideas: GrabCut's boundary term implicitly favors compact, smooth regions (low-frequency structure) over
+    scattered foreground pixels, and the thermal pipeline's Gaussian pre-blur is literally a low-pass filter
+    (Homework 3) applied to stabilize the Otsu threshold against sensor noise before the high-frequency
+    region boundary is extracted as a contour.</p>
+</div>
+{% endblock %}

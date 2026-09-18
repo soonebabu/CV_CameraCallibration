@@ -1,0 +1,68 @@
+{% extends "hw4/_layout.html" %}
+{% block content %}
+<div class="card">
+  <h1>Thermal image: human boundary via Otsu thresholding</h1>
+  <p>Upload a thermal/infrared photo. A person is usually the warmest object in frame, so a global intensity
+    threshold (Otsu, chosen automatically from the image histogram) plus morphological cleanup isolates them -
+    no training data or model involved.</p>
+  <form method="POST" enctype="multipart/form-data">
+    <label>Thermal image</label>
+    <input type="file" name="image" accept="image/*" required>
+
+    <label>
+      <input type="checkbox" name="hot_is_bright" checked>
+      Warm subject renders bright (white-hot palette). Uncheck for black-hot palettes.
+    </label>
+
+    <label>SAM2 mask to compare against (optional)</label>
+    <input type="file" name="sam2_mask" accept="image/*">
+
+    <button type="submit">Run segmentation</button>
+  </form>
+</div>
+
+{% if result %}
+<div class="card">
+  <h2>Result</h2>
+  <div class="img-grid">
+    <figure>
+      <img src="{{ result.urls.grayscale }}">
+      <figcaption>Grayscale intensity used for thresholding</figcaption>
+    </figure>
+    <figure>
+      <img src="{{ result.urls.mask }}">
+      <figcaption>Segmentation mask (Otsu + morphology + largest blob)</figcaption>
+    </figure>
+    <figure>
+      <img src="{{ result.urls.boundary }}">
+      <figcaption>Extracted boundary (largest contour)</figcaption>
+    </figure>
+  </div>
+</div>
+
+{% if result.sam2 %}
+<div class="card">
+  <h2>Comparison vs. SAM2</h2>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="label">IoU</div><div class="value">{{ "%.3f"|format(result.sam2.iou) }}</div></div>
+    <div class="stat-box"><div class="label">Dice</div><div class="value">{{ "%.3f"|format(result.sam2.dice) }}</div></div>
+  </div>
+  <div class="img-grid">
+    <figure>
+      <img src="{{ result.sam2.sam2_mask_url }}">
+      <figcaption>SAM2 mask (uploaded)</figcaption>
+    </figure>
+    <figure>
+      <img src="{{ result.sam2.overlay_url }}">
+      <figcaption>Agreement: white = both, green = ours only, red = SAM2 only</figcaption>
+    </figure>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <p class="muted">No SAM2 mask was attached, so no IoU/Dice comparison was run. See the
+    <a href="{{ url_for('hw4.overview') }}">overview</a> for how to generate one, then re-submit with it attached.</p>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

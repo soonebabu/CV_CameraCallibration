@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "hw2/_layout.html" %}
 {% block content %}
 <div class="card">
   <h1>Camera Calibration & Perspective Measurement</h1>
@@ -21,7 +21,7 @@
       <div class="stat-box"><div class="label">Reprojection error</div><div class="value">{{ "%.3f"|format(calib.reprojection_error) }} px</div></div>
     </div>
   {% else %}
-    <p class="muted">No calibration on file yet. Go to <a href="{{ url_for('calibrate_view') }}">Step 1</a> and upload chessboard photos.</p>
+    <p class="muted">No calibration on file yet. Go to <a href="{{ url_for('hw2.calibrate_view') }}">Step 1</a> and upload chessboard photos.</p>
   {% endif %}
 </div>
 {% endblock %}

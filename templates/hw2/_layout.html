@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block sidebar_brand %}Homework 2 &middot; Calibration{% endblock %}
+{% block sidebar_links %}
+  <a class="nav-link {{ 'current' if active_page == 'overview' }}" href="{{ url_for('hw2.overview') }}">Overview</a>
+  <a class="nav-link {{ 'current' if active_page == 'calibrate' }}" href="{{ url_for('hw2.calibrate_view') }}">1. Calibration</a>
+  <a class="nav-link {{ 'current' if active_page == 'measure' }}" href="{{ url_for('hw2.measure_view') }}">2. Measurement</a>
+  <a class="nav-link {{ 'current' if active_page == 'validate' }}" href="{{ url_for('hw2.validate_view') }}">3. Validation</a>
+{% endblock %}
